@@ -3,13 +3,11 @@ use fuzzy_matcher::clangd::{
     fuzzy_indices as fuzzy_indices_clangd,
     fuzzy_match as fuzzy_match_clangd,
 };
-use fuzzy_matcher::skim::{
-    fuzzy_indices as fuzzy_indices_skim,
-    fuzzy_match as fuzzy_match_skim
-};
+use fuzzy_matcher::skim::SkimMatcherV2;
+use fuzzy_matcher::FuzzyMatcher;
 
 fn calc_fuzz_score_skim(pat: &str, source: &str) -> Option<i64> {
-    fuzzy_match_skim(source, pat)
+    SkimMatcherV2::default().fuzzy_match(source, pat)
 }
 
 fn calc_fuzz_score_clangd(pat: &str, source: &str) -> Option<i64> {
@@ -77,7 +75,7 @@ fn calc_score_clangd(_env: &Env, pattern: String, source: String)
 fn find_indices_skim(env: &Env, pattern: String, source: String)
                       -> Result<Option<Value<'_>>> {
     if let Some(val) = find_indices_into_lisp(env,
-                                              fuzzy_indices_skim,
+                                              |pattern, source| SkimMatcherV2::default().fuzzy_indices(pattern, source),
                                               &pattern,
                                               &source,) {
         return Ok(Some(env.list(&val[..])?))
